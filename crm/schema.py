@@ -33,6 +33,11 @@ class OrderType(DjangoObjectType):
 
 
 # Queries
+class Query(graphene.ObjectType):
+    all_customers = graphene.List(CustomerType)
+    all_products = graphene.List(ProductType)
+    all_orders = graphene.List(OrderType)
+
 class CRMQuery(graphene.ObjectType):
     all_customers = DjangoFilterConnectionField(
         CustomerType,
