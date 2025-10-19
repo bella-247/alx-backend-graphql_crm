@@ -83,11 +83,12 @@ class BulkCreateCustomers(graphene.Mutation):
                 errors.append(f"Invalid phone format for {data.email}")
                 continue
 
-            customer = Customer.objects.create(
+            customer = Customer(
                 name=data.name,
                 email=data.email,
                 phone=data.phone or "",
             )
+            customer.save()
             created_customers.append(customer)
 
         return BulkCreateCustomers(customers=created_customers, errors=errors)
