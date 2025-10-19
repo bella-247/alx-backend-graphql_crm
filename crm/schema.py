@@ -1,34 +1,77 @@
+from email.policy import default
+import re
 import graphene
 from graphene_django import DjangoObjectType
-from .models import Customer, Product, Order
+from graphene_django.filter import DjangoFilterConnectionField
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
-import re
+from .models import Customer, Product, Order
+from .filters import CustomerFilter, ProductFilter, OrderFilter
 
 
 # Types
 class CustomerType(DjangoObjectType):
     class Meta:
         model = Customer
+        interfaces = (graphene.relay.Node,)
         fields = ("id", "name", "email", "phone")
 
 
 class ProductType(DjangoObjectType):
     class Meta:
         model = Product
+        interfaces = (graphene.relay.Node,)
         fields = ("id", "name", "price", "stock")
 
 
 class OrderType(DjangoObjectType):
     class Meta:
         model = Order
+        interfaces = (graphene.relay.Node,)
         fields = ("id", "customer", "products", "total_amount", "order_date")
 
 
 # Queries
 class CRMQuery(graphene.ObjectType):
+    all_customers = DjangoFilterConnectionField(
+        CustomerType,
+        filterset_class=CustomerFilter,
+        order_by=graphene.List(of_type=graphene.String),
+    )
+
+    all_products = DjangoFilterConnectionField(
+        ProductType,
+        filterset_class=ProductFilter,
+        order_by=graphene.List(of_type=graphene.String),
+    )
+    all_orders = DjangoFilterConnectionField(
+        OrderType,
+        filterset_class=OrderFilter,
+        order_by=graphene.List(of_type=graphene.String),
+    )
     hello = graphene.String(default_value="Hello, GraphQL!")
+
+    def resolve_all_customers(self, info, **kwargs):
+        queryset = Customer.objects.all()
+        order_by = kwargs.get("order_by")
+        if order_by:
+            queryset = queryset.order_by(*order_by)
+        return queryset
+
+    def resolve_all_products(self, info, **kwargs):
+        queryset = Product.objects.all()
+        order_by = kwargs.get("order_by")
+        if order_by:
+            queryset = queryset.order_by(*order_by)
+        return queryset
+
+    def resolve_all_orders(self, info, **kwargs):
+        queryset = Order.objects.all()
+        order_by = kwargs.get("order_by")
+        if order_by:
+            queryset = queryset.order_by(*order_by)
+        return queryset
 
 
 # Mutations
