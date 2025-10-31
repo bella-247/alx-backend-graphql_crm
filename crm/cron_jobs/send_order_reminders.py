@@ -2,7 +2,7 @@
 import datetime
 import logging
 from gql import gql, Client
-from gql.transport.requests import RequestHTTPTransport
+from gql.transport.requests import RequestsHTTPTransport
 
 log_file = "/tmp/order_reminders_log.txt"
 logging.basicConfig(
@@ -10,7 +10,7 @@ logging.basicConfig(
 )
 
 
-transport = RequestHTTPTransport(
+transport = RequestsHTTPTransport(
     url="http://localhost:8000/graphql", verify=False, retries=1
 )
 
