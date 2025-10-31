@@ -32,9 +32,9 @@ def update_low_stock():
     logging.basicConfig(
         filename=log_file, level=logging.INFO, format="%(asctime)s - %(message)s"
     )
-    query = gql(
+    mutation = gql(
         """
-        {
+        mutation {
             update_low_stock_products {
                 products {
                     id
@@ -47,12 +47,23 @@ def update_low_stock():
     """
     )
 
-    response = client.execute(query)
-    low_stock_products = [
-        product for product in response["data"]["update_low_stock_products"]
-    ]
+    try:
+        response = client.execute(mutation)
+        data = response.get("updateLowStockProducts", {})
 
-    for product in low_stock_products:
-        logging.info("Updated product", product.name)
-    else:
-        logging.info("No low stock products found.")
+        updated_products = data.get("products", [])
+        message = data.get("message", "")
+
+        if updated_products:
+            for product in updated_products:
+                logging.info(
+                    f"Updated product: {product.name} with stock {product.stock}"
+                )
+
+        else:
+            logging.info("No low stock products found.")
+
+        logging.info(f"Message: {message}")
+
+    except Exception as e:
+        logging.error(f"Error updating low stocks {str(e)}")

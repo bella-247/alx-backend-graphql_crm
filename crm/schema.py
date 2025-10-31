@@ -202,22 +202,21 @@ class CreateOrder(graphene.Mutation):
 
 
 class UpdateLowStockProducts(graphene.Mutation):
-    threshold = 10
-    low_stock_products = graphene.List(ProductType)
-    
     products = graphene.List(ProductType)
     message = graphene.String()
 
     @classmethod
-    def resolve_low_stock_products(cls):
-        return Product.objects.filter(stock__lt=cls.threshold)
-
-    def mutate(self, info):
-        low_stock_products = self.resolve_low_stock_products()
+    def mutate(cls, root, info):
+        threshold = 10
+        low_stock_products = Product.objects.filter(stock__lt=threshold)
+        
+        if not low_stock_products.exists():
+            return UpdateLowStockProducts(products=[], message="No low stock products found.")
+        
         for product in low_stock_products:
-            product.stock += self.threshold
+            product.stock += threshold
             product.save()
-
+            
         return UpdateLowStockProducts(products=low_stock_products, message="Low stock products updated successfully.")
 
 class Mutation(graphene.ObjectType):
