@@ -8,7 +8,6 @@ from django.utils import timezone
 from .models import Customer, Product, Order
 from .filters import CustomerFilter, ProductFilter, OrderFilter
 
-
 # Types
 class CustomerType(DjangoObjectType):
     class Meta:
@@ -200,8 +199,31 @@ class CreateOrder(graphene.Mutation):
         return CreateOrder(order=order, message="Order created successfully")
 
 
+
+
+class UpdateLowStockProducts(graphene.Mutation):
+    threshold = 10
+    low_stock_products = graphene.List(ProductType)
+    
+    products = graphene.List(ProductType)
+    message = graphene.String()
+
+    @classmethod
+    def resolve_low_stock_products(cls):
+        return Product.objects.filter(stock__lt=cls.threshold)
+
+    def mutate(self, info):
+        low_stock_products = self.resolve_low_stock_products()
+        for product in low_stock_products:
+            product.stock += self.threshold
+            product.save()
+
+        return UpdateLowStockProducts(products=low_stock_products, message="Low stock products updated successfully.")
+
 class Mutation(graphene.ObjectType):
     create_customer = CreateCustomer.Field()
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+    update_low_stock_products = UpdateLowStockProducts.Field()
+
