@@ -1,4 +1,3 @@
-from email.policy import default
 import re
 import graphene
 from graphene_django import DjangoObjectType
@@ -50,6 +49,7 @@ class CRMQuery(graphene.ObjectType):
         filterset_class=ProductFilter,
         order_by=graphene.List(of_type=graphene.String),
     )
+    
     all_orders = DjangoFilterConnectionField(
         OrderType,
         filterset_class=OrderFilter,
